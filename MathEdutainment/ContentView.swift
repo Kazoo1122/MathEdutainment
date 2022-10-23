@@ -8,13 +8,35 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var fromNum = 2.0
-    @State private var quantity = 5.0
-    @State private var difficult = 1.0
+    @State private var fromNum = 2.0 {
+        didSet {
+            randomNumber()
+            round = 0
+            score = 0
+        }
+    }
+    @State private var quantity = 5.0 {
+        didSet {
+            randomNumber()
+            round = 0
+            score = 0
+        }
+    }
+    @State private var maxNum = 9
+    @State private var difficult = 1.0 {
+        didSet {
+            randomNumber()
+            round = 0
+            score = 0
+        }
+    }
     @State private var inputNum = 0
     @State private var multipliedNum = Int.random(in: 1...9)
     @State private var round = 0
     @State private var score = 0
+    @State private var showingResult = false
+    @State private var resultTitle = ""
+    @State private var resultText = ""
     let difficultDict = [1.0: "Easy", 2.0: "Normal", 3.0: "Hard"]
     
     var body: some View {
@@ -47,9 +69,11 @@ struct ContentView: View {
                     } header: {
                         Text("difficulty")
                     }
-                    Button("Start") { round = 1 }
+                    if round == 0 {
+                        Button("Start") { round = 1 }
+                    }
                 }
-                if round >= 0 {
+                if round > 0 {
                     Section {
                         HStack {
                             Spacer()
@@ -93,7 +117,43 @@ struct ContentView: View {
                 }
             }
             .navigationTitle("MathEdutainment")
+            .onSubmit(submitAnswer)
+            .alert(resultTitle, isPresented: $showingResult) {
+                Button("OK") {
+                    round += 1
+                    if (round - 1) == Int(quantity) {
+                        round = 0
+                    } else {
+                        inputNum = 0
+                        randomNumber()
+                    }
+                }
+            } message: {
+                Text(resultText)
+            }
         }
+    }
+    func submitAnswer() {
+        let answerNum = Int(fromNum) * multipliedNum
+        if inputNum == answerNum {
+            score += 1
+            resultTitle = "Correct"
+        } else {
+            resultTitle = "Wrong"
+        }
+        resultText = round == Int(quantity) ? "Game Over" : "Continue"
+        showingResult = true
+    }
+    func randomNumber() {
+        switch difficult {
+            case 2.0:
+                maxNum = 12
+            case 3.0:
+                maxNum = 24
+            default:
+                maxNum = 9
+        }
+        multipliedNum = Int.random(in: 1...maxNum)
     }
 }
 
